@@ -18,6 +18,11 @@ $app = AppFactory::create();
 $professorService = new ProfessorService();
 $professorController = new ProfessorController($professorService);
 
+$app->get('/', function ($request, $response) {
+    $response->getBody()->write("Bem-vindo à API do Projeto Web");
+    return $response;
+});
+
 $app->get('/professors', [$professorController, 'getAll']);
 $app->get('/professors/{id}', [$professorController, 'getById']);
 $app->post('/professors', [$professorController, 'create']);
