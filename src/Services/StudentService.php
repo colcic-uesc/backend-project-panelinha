@@ -3,125 +3,66 @@
 namespace Dougl\Projetoweb\Services;
 
 use Dougl\Projetoweb\Models\Student;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class StudentService {
-    private $dataFile = __DIR__ . '/../../data/students.json';
-
-    public function __construct() {
-        if (!file_exists($this->dataFile) || filesize($this->dataFile) == 0) {
-            $this->initializeDataFile();
-        }
-    }
-
-    private function initializeDataFile() {
-        $initialData = ['nextId' => 1, 'students' => []];
-        file_put_contents($this->dataFile, json_encode($initialData));
-    }
-
-    private function readData() {
-        $jsonData = file_get_contents($this->dataFile);
-        $data = json_decode($jsonData, true);
-        
-        if (!isset($data['nextId']) || !isset($data['students'])) {
-            $this->initializeDataFile();
-            return $this->readData();
-        }
-        
-        return $data;
-    }
-
-    private function writeData($data) {
-        file_put_contents($this->dataFile, json_encode($data));
-    }
-
     public function getAll() {
-        $data = $this->readData();
-        error_log('Estudantes armazenados: ' . print_r($data['students'], true));
-        return array_values($data['students']);
+        return DB::table('students')->get();
     }
 
     public function getById($id) {
-        $data = $this->readData();
-        return $data['students'][$id] ?? null;
+        return DB::table('students')->find($id);
     }
 
     public function create(Student $student) {
-        $data = $this->readData();
-        $id = $data['nextId']++;
-        $student->id = $id;
-        $data['students'][$id] = $student;
-        $this->writeData($data);
-        error_log('Estudante criado: ' . print_r($student, true));
-        return $student;
+        $id = DB::table('students')->insertGetId([
+            'registration' => $student->registration,
+            'name' => $student->name,
+            'email' => $student->email,
+            'course' => $student->course,
+            'bio' => $student->bio,
+        ]);
+        return $this->getById($id);
     }
 
     public function update($id, Student $student) {
-        $data = $this->readData();
-        if (!isset($data['students'][$id])) {
-            return null;
-        }
-        $student->id = $id;
-        $data['students'][$id] = $student;
-        $this->writeData($data);
-        return $student;
+        $updated = DB::table('students')
+            ->where('id', $id)
+            ->update([
+                'registration' => $student->registration,
+                'name' => $student->name,
+                'email' => $student->email,
+                'course' => $student->course,
+                'bio' => $student->bio,
+            ]);
+        return $updated ? $this->getById($id) : null;
     }
 
     public function delete($id) {
-        $data = $this->readData();
-        if (!isset($data['students'][$id])) {
-            return false;
-        }
-        unset($data['students'][$id]);
-        $this->writeData($data);
-        return true;
+        return DB::table('students')->where('id', $id)->delete() > 0;
     }
 
     public function addSkillsToStudent($studentId, $skillIds) {
-        $data = $this->readData();
-        if (!isset($data['students'][$studentId])) {
+        $student = $this->getById($studentId);
+        if (!$student) {
             return null;
         }
 
-        $student = $data['students'][$studentId];
-        
-        // Inicialize a propriedade skills se ela não existir
-        if (!isset($student['skills']) || !is_array($student['skills'])) {
-            $student['skills'] = [];
-        }
-
-        // Verifique se as novas habilidades existem e obtenha seus títulos
-        $skillService = new SkillService();
-        $existingSkills = $skillService->getAll();
-        $skillTitles = [];
         foreach ($skillIds as $skillId) {
-            foreach ($existingSkills as $skill) {
-                if ($skill['id'] == $skillId) {
-                    $skillTitles[$skillId] = $skill['title'];
-                    break;
-                }
-            }
+            DB::table('student_skills')->insertOrIgnore([
+                'student_id' => $studentId,
+                'skill_id' => $skillId,
+            ]);
         }
 
-        // Adicione as novas habilidades com seus títulos no formato JSON
-        foreach ($skillTitles as $skillId => $title) {
-            $student['skills'][$skillId] = $title;
-        }
-        
-        $data['students'][$studentId] = $student;
-        $this->writeData($data);
-
-        return $this->arrayToStudent($student);
+        return $this->getById($studentId);
     }
 
-    private function arrayToStudent($array) {
-        $student = new Student();
-        $student->id = $array['id'];
-        $student->name = $array['name'];
-        $student->registration = $array['registration'];
-        $student->email = $array['email'];
-        $student->course = $array['course'];
-        $student->bio = $array['bio'];
-        $student->skills = $array['skills'] ?? [];
-        return $student;
+    public function getStudentSkills($studentId) {
+        return DB::table('skills')
+            ->join('student_skills', 'skills.id', '=', 'student_skills.skill_id')
+            ->where('student_skills.student_id', $studentId)
+            ->select('skills.*')
+            ->get();
     }
 }

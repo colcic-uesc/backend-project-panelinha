@@ -3,76 +3,81 @@
 namespace Dougl\Projetoweb\Services;
 
 use Dougl\Projetoweb\Models\Project;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class ProjectService {
-    private $dataFile = __DIR__ . '/../../data/projects.json';
-
-    public function __construct() {
-        if (!file_exists($this->dataFile) || filesize($this->dataFile) == 0) {
-            $this->initializeDataFile();
-        }
-    }
-
-    private function initializeDataFile() {
-        $initialData = ['nextId' => 1, 'projects' => []];
-        file_put_contents($this->dataFile, json_encode($initialData));
-    }
-
-    private function readData() {
-        $jsonData = file_get_contents($this->dataFile);
-        $data = json_decode($jsonData, true);
-        
-        if (!isset($data['nextId']) || !isset($data['projects'])) {
-            $this->initializeDataFile();
-            return $this->readData();
-        }
-        
-        return $data;
-    }
-
-    private function writeData($data) {
-        file_put_contents($this->dataFile, json_encode($data));
-    }
-
     public function getAll() {
-        $data = $this->readData();
-        error_log('Projetos armazenados: ' . print_r($data['projects'], true));
-        return array_values($data['projects']);
+        return DB::table('projects')->get();
     }
 
     public function getById($id) {
-        $data = $this->readData();
-        return $data['projects'][$id] ?? null;
+        $project = DB::table('projects')->find($id);
+        
+        if (!$project) {
+            throw new \Exception("Projeto com ID {$id} não encontrado.");
+        }
+        
+        return $project;
     }
 
     public function create(Project $project) {
-        $data = $this->readData();
-        $id = $data['nextId']++;
-        $project->id = $id;
-        $data['projects'][$id] = $project;
-        $this->writeData($data);
-        error_log('Projeto criado: ' . print_r($project, true));
-        return $project;
+        $professorExists = DB::table('professors')->where('id', $project->professor_id)->exists();
+        
+        if (!$professorExists) {
+            throw new \Exception("Professor com ID {$project->professor_id} não existe.");
+        }
+    
+        $id = DB::table('projects')->insertGetId([
+            'title' => $project->title,
+            'description' => $project->description,
+            'type' => $project->type,
+            'start_date' => $project->start_date,
+            'end_date' => $project->end_date,
+            'professor_id' => $project->professor_id,
+        ]);
+        return $this->getById($id);
     }
 
     public function update($id, Project $project) {
-        $data = $this->readData();
-        if (!isset($data['projects'][$id])) {
-            return null;
+        // Verifica se o projeto existe
+        $existingProject = DB::table('projects')->find($id);
+        
+        if (!$existingProject) {
+            throw new \Exception("Projeto com ID {$id} não encontrado para atualização.");
         }
-        $project->id = $id;
-        $data['projects'][$id] = $project;
-        $this->writeData($data);
-        return $project;
+
+        // Verifica se o professor existe
+        $professorExists = DB::table('professors')->where('id', $project->professor_id)->exists();
+        
+        if (!$professorExists) {
+            throw new \Exception("Professor com ID {$project->professor_id} não existe. Não é possível atualizar o projeto.");
+        }
+
+        $updated = DB::table('projects')
+            ->where('id', $id)
+            ->update([
+                'title' => $project->title,
+                'description' => $project->description,
+                'type' => $project->type,
+                'start_date' => $project->start_date,
+                'end_date' => $project->end_date,
+                'professor_id' => $project->professor_id,
+            ]);
+
+        if (!$updated) {
+            throw new \Exception("Falha ao atualizar o projeto com ID {$id}.");
+        }
+        
+        return $this->getById($id);
     }
 
     public function delete($id) {
-        $data = $this->readData();
-        if (!isset($data['projects'][$id])) {
-            return false;
+        $project = DB::table('projects')->where('id', $id)->delete() > 0;
+
+        if (!$project) {
+            throw new \Exception("Falha ao deletar o projeto com ID {$id}.");
         }
-        unset($data['projects'][$id]);
-        $this->writeData($data);
-        return true;
+
+        return $project;
     }
 }

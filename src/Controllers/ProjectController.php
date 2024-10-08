@@ -21,12 +21,15 @@ class ProjectController {
     }
 
     public function getById(Request $request, Response $response, $args) {
-        $project = $this->projectService->getById($args['id']);
-        if ($project) {
+        try {
+            $project = $this->projectService->getById($args['id']);
             $response->getBody()->write(json_encode($project));
             return $response->withHeader('Content-Type', 'application/json');
+        } catch (\Exception $e) {
+            $errorMessage = ['error' => $e->getMessage()];
+            $response->getBody()->write(json_encode($errorMessage));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
-        return $response->withStatus(404);
     }
 
     public function create(Request $request, Response $response) {
@@ -91,19 +94,23 @@ class ProjectController {
         $project->end_date = $data['end_date'];
         $project->professor_id = $data['professor_id'];
         
-        $updatedProject = $this->projectService->update($args['id'], $project);
-        if ($updatedProject) {
+        try {
+            $updatedProject = $this->projectService->update($args['id'], $project);
             $response->getBody()->write(json_encode($updatedProject));
             return $response->withHeader('Content-Type', 'application/json');
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
-        return $response->withStatus(404);
     }
 
     public function delete(Request $request, Response $response, $args) {
+       try {
         $result = $this->projectService->delete($args['id']);
-        if ($result) {
-            return $response->withStatus(204);
-        }
-        return $response->withStatus(404);
+        return $response->withStatus(204);
+       } catch (\Exception $e) {
+        $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+        return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+       }
     }
 }

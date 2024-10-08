@@ -14,6 +14,7 @@ Este projeto é uma API RESTful para gerenciamento de professores, estudantes, p
 
 - PHP 8.0 ou superior
 - Composer
+- MySQL 5.7 ou superior
 
 ## Instalação
 
@@ -26,6 +27,16 @@ Este projeto é uma API RESTful para gerenciamento de professores, estudantes, p
 2. Instale as dependências:
    ```bash
    composer install
+   ```
+
+3. Configure o banco de dados:
+   - Crie um banco de dados MySQL
+   - Copie o arquivo `.env.example` para `.env`
+   - Edite `.env` e insira as credenciais do seu banco de dados
+
+4. Execute as migrações:
+   ```
+   vendor/bin/phinx migrate
    ```
 
 ## Executando o projeto

@@ -3,76 +3,49 @@
 namespace Dougl\Projetoweb\Services;
 
 use Dougl\Projetoweb\Models\Skill;
+use Illuminate\Database\Capsule\Manager as DB;
 
 class SkillService {
-    private $dataFile = __DIR__ . '/../../data/skills.json';
-
-    public function __construct() {
-        if (!file_exists($this->dataFile) || filesize($this->dataFile) == 0) {
-            $this->initializeDataFile();
-        }
-    }
-
-    private function initializeDataFile() {
-        $initialData = ['nextId' => 1, 'skills' => []];
-        file_put_contents($this->dataFile, json_encode($initialData));
-    }
-
-    private function readData() {
-        $jsonData = file_get_contents($this->dataFile);
-        $data = json_decode($jsonData, true);
-        
-        if (!isset($data['nextId']) || !isset($data['skills'])) {
-            $this->initializeDataFile();
-            return $this->readData();
-        }
-        
-        return $data;
-    }
-
-    private function writeData($data) {
-        file_put_contents($this->dataFile, json_encode($data));
-    }
-
     public function getAll() {
-        $data = $this->readData();
-        error_log('Habilidades armazenadas: ' . print_r($data['skills'], true));
-        return array_values($data['skills']);
+        return DB::table('skills')->get();
     }
 
     public function getById($id) {
-        $data = $this->readData();
-        return $data['skills'][$id] ?? null;
+        $skill = DB::table('skills')->find($id);
+        if(!$skill) {
+            throw new \Exception("Habilidade com ID {$id} não encontrada.");
+        }
+        return $skill;
     }
 
     public function create(Skill $skill) {
-        $data = $this->readData();
-        $id = $data['nextId']++;
-        $skill->id = $id;
-        $data['skills'][$id] = $skill;
-        $this->writeData($data);
-        error_log('Habilidade criada: ' . print_r($skill, true));
-        return $skill;
+        $id = DB::table('skills')->insertGetId([
+            'title' => $skill->title,
+            'description' => $skill->description,
+        ]);
+        return $this->getById($id);
     }
 
     public function update($id, Skill $skill) {
-        $data = $this->readData();
-        if (!isset($data['skills'][$id])) {
-            return null;
+        $updated = DB::table('skills')
+            ->where('id', $id)
+            ->update([
+                'title' => $skill->title,
+                'description' => $skill->description,
+            ]);
+
+        if (!$updated) {
+            throw new \Exception("Falha ao atualizar a habilidade com ID {$id}.");
         }
-        $skill->id = $id;
-        $data['skills'][$id] = $skill;
-        $this->writeData($data);
-        return $skill;
+
+        return $this->getById($id);
     }
 
     public function delete($id) {
-        $data = $this->readData();
-        if (!isset($data['skills'][$id])) {
-            return false;
+        $skill = DB::table('skills')->where('id', $id)->delete();
+        if (!$skill) {
+            throw new \Exception("Falha ao deletar a habilidade com ID {$id}.");
         }
-        unset($data['skills'][$id]);
-        $this->writeData($data);
-        return true;
+        return $skill;
     }
 }

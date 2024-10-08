@@ -21,12 +21,14 @@ class SkillController {
     }
 
     public function getById(Request $request, Response $response, $args) {
-        $skill = $this->skillService->getById($args['id']);
-        if ($skill) {
+        try {
+            $skill = $this->skillService->getById($args['id']);
             $response->getBody()->write(json_encode($skill));
             return $response->withHeader('Content-Type', 'application/json');
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
-        return $response->withStatus(404);
     }
 
     public function create(Request $request, Response $response) {
@@ -83,7 +85,14 @@ class SkillController {
         $skill = new Skill();
         $skill->title = $data['title'];
         $skill->description = $data['description'];
-        $updatedSkill = $this->skillService->update($args['id'], $skill);
+        try {
+            $updatedSkill = $this->skillService->update($args['id'], $skill);
+            $response->getBody()->write(json_encode($updatedSkill));
+            return $response->withHeader('Content-Type', 'application/json');
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
+        }
         if ($updatedSkill) {
             $response->getBody()->write(json_encode($updatedSkill));
             return $response->withHeader('Content-Type', 'application/json');
@@ -92,10 +101,12 @@ class SkillController {
     }
 
     public function delete(Request $request, Response $response, $args) {
-        $result = $this->skillService->delete($args['id']);
-        if ($result) {
+        try {
+            $result = $this->skillService->delete($args['id']);
             return $response->withStatus(204);
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
         }
-        return $response->withStatus(404);
     }
 }

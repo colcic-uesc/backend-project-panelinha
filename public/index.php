@@ -11,6 +11,7 @@ use Dougl\Projetoweb\Services\ProjectService;
 use Dougl\Projetoweb\Services\SkillService;
 
 require __DIR__ . '/../vendor/autoload.php';
+require __DIR__ . '/../config/database.php';
 
 $app = AppFactory::create();
 
