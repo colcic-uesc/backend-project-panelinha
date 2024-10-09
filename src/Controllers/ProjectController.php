@@ -114,4 +114,28 @@ class ProjectController {
         return $response->withHeader('Content-Type', 'application/json')->withStatus(404);
        }
     }
+
+    public function addSkills(Request $request, Response $response, $args) {
+        $projectId = $args['id'];
+        $data = json_decode($request->getBody()->getContents(), true);
+
+        if (!isset($data['skills']) || !is_array($data['skills'])) {
+            $response->getBody()->write(json_encode(['error' => 'O campo "skills" é obrigatório e deve ser um array']));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
+        }
+
+        try {
+            $updatedProject = $this->projectService->addSkillsToProject($projectId, $data['skills']);
+            
+            if ($updatedProject) {
+                $response->getBody()->write(json_encode($updatedProject));
+                return $response->withHeader('Content-Type', 'application/json');
+            }
+            
+            return $response->withStatus(404)->withHeader('Content-Type', 'application/json')->getBody()->write(json_encode(['error' => 'Projeto não encontrado']));
+        } catch (\Exception $e) {
+            $response->getBody()->write(json_encode(['error' => $e->getMessage()]));
+            return $response->withHeader('Content-Type', 'application/json')->withStatus(500);
+        }
+    }
 }

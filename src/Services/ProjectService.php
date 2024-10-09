@@ -7,7 +7,8 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class ProjectService {
     public function getAll() {
-        return DB::table('projects')->get();
+        $projects = DB::table('projects')->get();
+        return $this->addSkillsToProjects($projects);
     }
 
     public function getById($id) {
@@ -15,6 +16,8 @@ class ProjectService {
         
         if (!$project) {
             throw new \Exception("Projeto com ID {$id} não encontrado.");
+        } else {
+            $project->skills = $this->getProjectSkills($id);
         }
         
         return $project;
@@ -79,5 +82,43 @@ class ProjectService {
         }
 
         return $project;
+    }
+
+    public function getProjectSkills($projectId) {
+        $skills = DB::table('skills')
+            ->join('project_skills', 'skills.id', '=', 'project_skills.skill_id')
+            ->where('project_skills.project_id', $projectId)
+            ->select('skills.id', 'skills.title')
+            ->get();
+
+        $formattedSkills = [];
+        foreach ($skills as $skill) {
+            $formattedSkills[$skill->id] = $skill->title;
+        }
+
+        return $formattedSkills;
+    }
+
+    public function addSkillsToProject($projectId, $skillIds) {
+        $project = $this->getById($projectId);
+        if (!$project) {
+            return null;
+        }
+
+        foreach ($skillIds as $skillId) {
+            DB::table('project_skills')->insertOrIgnore([
+                'project_id' => $projectId,
+                'skill_id' => $skillId,
+            ]);
+        }
+
+        return $this->getById($projectId);
+    }
+
+    private function addSkillsToProjects($projects) {
+        foreach ($projects as $project) {
+            $project->skills = $this->getProjectSkills($project->id);
+        }
+        return $projects;
     }
 }

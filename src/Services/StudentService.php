@@ -7,11 +7,16 @@ use Illuminate\Database\Capsule\Manager as DB;
 
 class StudentService {
     public function getAll() {
-        return DB::table('students')->get();
+        $students = DB::table('students')->get();
+        return $this->addSkillsToStudents($students);
     }
 
     public function getById($id) {
-        return DB::table('students')->find($id);
+        $student = DB::table('students')->find($id);
+        if ($student) {
+            $student->skills = $this->getStudentSkills($id);
+        }
+        return $student;
     }
 
     public function create(Student $student) {
@@ -59,10 +64,24 @@ class StudentService {
     }
 
     public function getStudentSkills($studentId) {
-        return DB::table('skills')
+        $skills = DB::table('skills')
             ->join('student_skills', 'skills.id', '=', 'student_skills.skill_id')
             ->where('student_skills.student_id', $studentId)
-            ->select('skills.*')
+            ->select('skills.id', 'skills.title')
             ->get();
+
+        $formattedSkills = [];
+        foreach ($skills as $skill) {
+            $formattedSkills[$skill->id] = $skill->title;
+        }
+
+        return $formattedSkills;
+    }
+
+    private function addSkillsToStudents($students) {
+        foreach ($students as $student) {
+            $student->skills = $this->getStudentSkills($student->id);
+        }
+        return $students;
     }
 }

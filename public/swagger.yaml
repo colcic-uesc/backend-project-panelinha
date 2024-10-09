@@ -225,58 +225,6 @@ paths:
         '404':
           description: Estudante não encontrado
 
-  /students/{id}/skills:
-    post:
-      summary: Adiciona habilidades a um estudante
-      tags:
-        - Habilidades
-      parameters:
-        - in: path
-          name: id
-          required: true
-          schema:
-            type: integer
-          description: ID do estudante
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              type: object
-              properties:
-                skills:
-                  type: array
-                  items:
-                    type: integer
-                  description: Array de IDs das habilidades a serem adicionadas
-              required:
-                - skills
-      responses:
-        '200':
-          description: Estudante atualizado com as novas habilidades
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Student'
-        '400':
-          description: Requisição inválida
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '404':
-          description: Estudante não encontrado
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-        '500':
-          description: Erro interno do servidor
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Error'
-
   /projects:
     get:
       tags:
@@ -486,7 +434,108 @@ paths:
           description: Removido com sucesso
         '404':
           description: Habilidade não encontrada
-
+  /students/{id}/skills:
+    post:
+      summary: Adiciona habilidades a um estudante
+      tags:
+        - Habilidades
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID do estudante
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skills:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array de IDs das habilidades a serem adicionadas
+              required:
+                - skills
+      responses:
+        '200':
+          description: Estudante atualizado com as novas habilidades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Student'
+        '400':
+          description: Requisição inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Estudante não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+  /projects/{id}/skills:
+    post:
+      summary: Adiciona habilidades a um projeto
+      tags:
+        - Habilidades
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: integer
+          description: ID do projeto
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                skills:
+                  type: array
+                  items:
+                    type: integer
+                  description: Array de IDs das habilidades a serem adicionadas
+              required:
+                - skills
+      responses:
+        '200':
+          description: Projeto atualizado com as novas habilidades
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Project'
+        '400':
+          description: Requisição inválida
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Projeto não encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Erro interno do servidor
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
 components:
   schemas:
     Professor:
@@ -572,6 +621,10 @@ components:
         professor_id:
           type: integer
           description: ID do professor responsável pelo projeto
+        skills:
+          readOnly: true
+          type: object
+          description: Habilidades do projeto
       required:
         - title
         - description

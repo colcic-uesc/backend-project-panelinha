@@ -39,7 +39,6 @@ $app->get('/students/{id}', [$studentController, 'getById']);
 $app->post('/students', [$studentController, 'create']);
 $app->put('/students/{id}', [$studentController, 'update']);
 $app->delete('/students/{id}', [$studentController, 'delete']);
-
 $app->post('/students/{id}/skills', [$studentController, 'addSkills']);
 
 // Project routes
@@ -51,6 +50,7 @@ $app->get('/projects/{id}', [$projectController, 'getById']);
 $app->post('/projects', [$projectController, 'create']);
 $app->put('/projects/{id}', [$projectController, 'update']);
 $app->delete('/projects/{id}', [$projectController, 'delete']);
+$app->post('/projects/{id}/skills', [$projectController, 'addSkills']);
 
 // Skill routes
 $skillService = new SkillService();
