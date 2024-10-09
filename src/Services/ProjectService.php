@@ -26,7 +26,7 @@ class ProjectService {
         if (!$professorExists) {
             throw new \Exception("Professor com ID {$project->professor_id} não existe.");
         }
-    
+
         $id = DB::table('projects')->insertGetId([
             'title' => $project->title,
             'description' => $project->description,

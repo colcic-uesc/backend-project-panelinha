@@ -36,7 +36,7 @@ class ProjectController {
         $data = json_decode($request->getBody()->getContents(), true);
         error_log('Dados recebidos (Project): ' . print_r($data, true));
         
-        $requiredFields = ['title', 'description', 'start_date', 'end_date'];
+        $requiredFields = ['title', 'description', 'type', 'start_date', 'end_date', 'professor_id'];
         $missingFields = [];
         
         foreach ($requiredFields as $field) {
@@ -54,6 +54,7 @@ class ProjectController {
         $project = new Project();
         $project->title = $data['title'];
         $project->description = $data['description'];
+        $project->type = $data['type'];
         $project->start_date = $data['start_date'];
         $project->end_date = $data['end_date'];
         $project->professor_id = $data['professor_id'];
