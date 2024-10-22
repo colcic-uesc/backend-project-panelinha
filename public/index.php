@@ -9,6 +9,10 @@ use Dougl\Projetoweb\Services\ProfessorService;
 use Dougl\Projetoweb\Services\StudentService;
 use Dougl\Projetoweb\Services\ProjectService;
 use Dougl\Projetoweb\Services\SkillService;
+use Dougl\Projetoweb\Middleware\LogMiddleware;
+use Dougl\Projetoweb\Middleware\HeadersMiddleware;
+use Dougl\Projetoweb\Controllers\AuthController;
+use Dougl\Projetoweb\Middleware\JWTAuthMiddleware;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config/database.php';
@@ -61,5 +65,24 @@ $app->get('/skills/{id}', [$skillController, 'getById']);
 $app->post('/skills', [$skillController, 'create']);
 $app->put('/skills/{id}', [$skillController, 'update']);
 $app->delete('/skills/{id}', [$skillController, 'delete']);
+
+// middlewares globais
+$app->add(new LogMiddleware());
+$app->add(new HeadersMiddleware());
+
+$authController = new AuthController();
+
+// rota de autenticação
+$app->post('/auth/login', [$authController, 'login']);
+
+// rota protegida
+$app->get('/protected-route', function ($request, $response) {
+    $payload = $request->getAttribute('jwt_payload');
+    $response->getBody()->write(json_encode([
+        'message' => 'Rota protegida acessada com sucesso',
+        'user' => $payload
+    ]));
+    return $response->withHeader('Content-Type', 'application/json');
+})->add(new JWTAuthMiddleware());
 
 $app->run();

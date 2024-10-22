@@ -13,6 +13,153 @@ tags:
     description: Operações relacionadas a projetos
   - name: Habilidades
     description: Operações relacionadas a habilidades
+  - name: Autenticação
+    description: Operações relacionadas à autenticação
+
+# global:
+#security:
+#  - BearerAuth: []
+
+# Adicione os componentes de segurança e schema de autenticação
+components:
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    Professor:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único do professor
+        name:
+          type: string
+          description: Nome completo do professor
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do professor
+        department:
+          type: string
+          description: Departamento ao qual o professor está vinculado
+        bio:
+          type: string
+          description: Breve biografia do professor
+      required:
+        - name
+        - email
+        - department
+    Student:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único do estudante
+        registration:
+          type: string
+          description: Número de matrícula do estudante
+        name:
+          type: string
+          description: Nome completo do estudante
+        email:
+          type: string
+          format: email
+          description: Endereço de e-mail do estudante
+        course:
+          type: string
+          description: Curso no qual o estudante está matriculado
+        bio:
+          type: string
+          description: Breve biografia do estudante
+        skills:
+          readOnly: true
+          type: object
+          description: Habilidades do estudante
+      required:
+        - registration
+        - name
+        - email
+        - course
+    Project:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único do projeto
+        title:
+          type: string
+          description: Título do projeto
+        description:
+          type: string
+          description: Descrição detalhada do projeto
+        type:
+          type: string
+          description: Tipo ou categoria do projeto
+        start_date:
+          type: string
+          format: date
+          description: Data de início do projeto
+        end_date:
+          type: string
+          format: date
+          description: Data de término prevista para o projeto
+        professor_id:
+          type: integer
+          description: ID do professor responsável pelo projeto
+        skills:
+          readOnly: true
+          type: object
+          description: Habilidades do projeto
+      required:
+        - title
+        - description
+        - type
+        - start_date
+        - professor_id
+    Skill:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único da habilidade
+        title:
+          type: string
+          description: Título ou nome da habilidade
+        description:
+          type: string
+          description: Descrição detalhada da habilidade
+      required:
+        - title
+        - description
+    Error:
+      type: object
+    # Adicione o schema de login
+    LoginRequest:
+      type: object
+      properties:
+        registration:
+          type: string
+          description: Número de matrícula do estudante
+        email:
+          type: string
+          format: email
+          description: Email do estudante
+      required:
+        - registration
+        - email
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token JWT para autenticação
 
 paths:
   /professors:
@@ -536,119 +683,72 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
-components:
-  schemas:
-    Professor:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-          description: ID único do professor
-        name:
-          type: string
-          description: Nome completo do professor
-        email:
-          type: string
-          format: email
-          description: Endereço de e-mail do professor
-        department:
-          type: string
-          description: Departamento ao qual o professor está vinculado
-        bio:
-          type: string
-          description: Breve biografia do professor
-      required:
-        - name
-        - email
-        - department
-    Student:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-          description: ID único do estudante
-        registration:
-          type: string
-          description: Número de matrícula do estudante
-        name:
-          type: string
-          description: Nome completo do estudante
-        email:
-          type: string
-          format: email
-          description: Endereço de e-mail do estudante
-        course:
-          type: string
-          description: Curso no qual o estudante está matriculado
-        bio:
-          type: string
-          description: Breve biografia do estudante
-        skills:
-          readOnly: true
-          type: object
-          description: Habilidades do estudante
-      required:
-        - registration
-        - name
-        - email
-        - course
-    Project:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-          description: ID único do projeto
-        title:
-          type: string
-          description: Título do projeto
-        description:
-          type: string
-          description: Descrição detalhada do projeto
-        type:
-          type: string
-          description: Tipo ou categoria do projeto
-        start_date:
-          type: string
-          format: date
-          description: Data de início do projeto
-        end_date:
-          type: string
-          format: date
-          description: Data de término prevista para o projeto
-        professor_id:
-          type: integer
-          description: ID do professor responsável pelo projeto
-        skills:
-          readOnly: true
-          type: object
-          description: Habilidades do projeto
-      required:
-        - title
-        - description
-        - type
-        - start_date
-        - professor_id
-    Skill:
-      type: object
-      properties:
-        id:
-          type: integer
-          readOnly: true
-          description: ID único da habilidade
-        title:
-          type: string
-          description: Título ou nome da habilidade
-        description:
-          type: string
-          description: Descrição detalhada da habilidade
-      required:
-        - title
-        - description
-    Error:
-      type: object
-      properties:
-        error:
-          type: string
+
+  # Adicione o endpoint de autenticação
+  /auth/login:
+    post:
+      tags:
+        - Autenticação
+      summary: Realizar login
+      description: Autentica um estudante e retorna um token JWT
+      security: []  # Remove a necessidade de autenticação para este endpoint
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+      responses:
+        '200':
+          description: Login realizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/LoginResponse'
+        '400':
+          description: Dados inválidos
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Credenciais inválidas
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  # Exemplo de rota protegida
+  /protected-route:
+    get:
+      tags:
+        - Autenticação
+      summary: Rota protegida de exemplo
+      description: Exemplo de rota que requer autenticação JWT
+      security:
+        - BearerAuth: []
+      responses:
+        '200':
+          description: Acesso permitido
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                  user:
+                    type: object
+                    properties:
+                      sub:
+                        type: integer
+                      registration:
+                        type: string
+                      email:
+                        type: string
+        '401':
+          description: Não autorizado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'

@@ -11,15 +11,43 @@
     <div id="swagger-ui"></div>
     <script>
         window.onload = function() {
-            SwaggerUIBundle({
+            const ui = SwaggerUIBundle({
                 url: "./swagger.yaml",
                 dom_id: '#swagger-ui',
                 presets: [
                     SwaggerUIBundle.presets.apis,
                     SwaggerUIBundle.SwaggerUIStandalonePreset
                 ],
-                layout: "BaseLayout"
+                layout: "BaseLayout",
+                requestInterceptor: (request) => {
+                    // Pega o token do localStorage se existir
+                    const token = localStorage.getItem('jwt_token');
+                    if (token) {
+                        request.headers.Authorization = `Bearer ${token}`;
+                    }
+                    return request;
+                },
+                responseInterceptor: (response) => {
+                    // Se for uma resposta do endpoint de login, salva o token
+                    if (response.url.endsWith('/auth/login') && response.obj.token) {
+                        localStorage.setItem('jwt_token', response.obj.token);
+                    }
+                    return response;
+                }
             });
+
+            // Adiciona um botão para limpar o token
+            const clearTokenButton = document.createElement('button');
+            clearTokenButton.textContent = 'Limpar Token';
+            clearTokenButton.style.position = 'fixed';
+            clearTokenButton.style.top = '10px';
+            clearTokenButton.style.right = '10px';
+            clearTokenButton.style.zIndex = '9999';
+            clearTokenButton.onclick = () => {
+                localStorage.removeItem('jwt_token');
+                alert('Token removido!');
+            };
+            document.body.appendChild(clearTokenButton);
         }
     </script>
 </body>
