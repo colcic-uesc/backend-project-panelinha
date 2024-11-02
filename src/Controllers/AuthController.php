@@ -20,25 +20,24 @@ class AuthController
     {
         $data = json_decode($request->getBody()->getContents(), true);
 
-        if (!isset($data['registration']) || !isset($data['email'])) {
-            $response->getBody()->write(json_encode(['error' => 'Matrícula e email são obrigatórios']));
+        if (!isset($data['username']) || !isset($data['password'])) {
+            $response->getBody()->write(json_encode(['error' => 'Username e password são obrigatórios']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(400);
         }
 
-        $student = DB::table('students')
-            ->where('registration', $data['registration'])
-            ->where('email', $data['email'])
+        $user = DB::table('users')
+            ->where('username', $data['username'])
             ->first();
 
-        if (!$student) {
+        if (!$user || !password_verify($data['password'], $user->password)) {
             $response->getBody()->write(json_encode(['error' => 'Credenciais inválidas']));
             return $response->withHeader('Content-Type', 'application/json')->withStatus(401);
         }
 
         $token = $this->jwtAuth->generateToken([
-            'sub' => $student->id,
-            'registration' => $student->registration,
-            'email' => $student->email
+            'sub' => $user->id,
+            'username' => $user->username,
+            'rules' => $user->rules
         ]);
 
         $response->getBody()->write(json_encode(['token' => $token]));

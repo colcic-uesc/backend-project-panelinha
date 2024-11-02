@@ -13,6 +13,8 @@ use Dougl\Projetoweb\Middleware\LogMiddleware;
 use Dougl\Projetoweb\Middleware\HeadersMiddleware;
 use Dougl\Projetoweb\Controllers\AuthController;
 use Dougl\Projetoweb\Middleware\JWTAuthMiddleware;
+use Dougl\Projetoweb\Controllers\UserController;
+use Dougl\Projetoweb\Services\UserService;
 
 require __DIR__ . '/../vendor/autoload.php';
 require __DIR__ . '/../config/database.php';
@@ -66,6 +68,16 @@ $app->post('/skills', [$skillController, 'create']);
 $app->put('/skills/{id}', [$skillController, 'update']);
 $app->delete('/skills/{id}', [$skillController, 'delete']);
 
+// User routes
+$userService = new UserService();
+$userController = new UserController($userService);
+
+$app->get('/users', [$userController, 'getAll'])->add(new JWTAuthMiddleware());
+$app->get('/users/{id}', [$userController, 'getById'])->add(new JWTAuthMiddleware());
+$app->post('/users', [$userController, 'create'])->add(new JWTAuthMiddleware());
+$app->put('/users/{id}', [$userController, 'update'])->add(new JWTAuthMiddleware());
+$app->delete('/users/{id}', [$userController, 'delete'])->add(new JWTAuthMiddleware());
+
 // middlewares globais
 $app->add(new LogMiddleware());
 $app->add(new HeadersMiddleware());
@@ -84,5 +96,23 @@ $app->get('/protected-route', function ($request, $response) {
     ]));
     return $response->withHeader('Content-Type', 'application/json');
 })->add(new JWTAuthMiddleware());
+
+// Middleware JWT global para todas as rotas
+$app->add(function ($request, $handler) {
+    $route = $request->getUri()->getPath();
+    
+    // Lista de rotas que não precisam de autenticação
+    $publicRoutes = [
+        '/auth/login'
+    ];
+
+    // Se não for uma rota pública, aplica o middleware JWT
+    if (!in_array($route, $publicRoutes)) {
+        $jwtMiddleware = new JWTAuthMiddleware();
+        return $jwtMiddleware($request, $handler);
+    }
+
+    return $handler->handle($request);
+});
 
 $app->run();

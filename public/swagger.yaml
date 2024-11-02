@@ -23,7 +23,7 @@ tags:
 # Adicione os componentes de segurança e schema de autenticação
 components:
   securitySchemes:
-    BearerAuth:
+    bearerAuth:
       type: http
       scheme: bearer
       bearerFormat: JWT
@@ -143,18 +143,60 @@ components:
     LoginRequest:
       type: object
       properties:
+        username:
+          type: string
+          description: Nome de usuário para login
+        password:
+          type: string
+          description: Senha do usuário
+      required:
+        - username
+        - password
+
+    LoginResponse:
+      type: object
+      properties:
+        token:
+          type: string
+          description: Token JWT para autenticação
+
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+          description: ID único do usuário
+        username:
+          type: string
+          description: Nome de usuário para login
+        rules:
+          type: string
+          description: Regras/permissões do usuário
+        password:
+          type: string
+          writeOnly: true
+          description: Senha do usuário (apenas para criação/atualização)
+      required:
+        - username
+        - password
+        - rules
+
+    LoginCredentials:
+      type: object
+      properties:
         registration:
           type: string
-          description: Número de matrícula do estudante
+          description: Número de matrícula do usuário
         email:
           type: string
           format: email
-          description: Email do estudante
+          description: Email do usuário
       required:
         - registration
         - email
 
-    LoginResponse:
+    TokenResponse:
       type: object
       properties:
         token:
@@ -690,7 +732,7 @@ paths:
       tags:
         - Autenticação
       summary: Realizar login
-      description: Autentica um estudante e retorna um token JWT
+      description: Autentica um usuário e retorna um token JWT
       security: []  # Remove a necessidade de autenticação para este endpoint
       requestBody:
         required: true
@@ -752,3 +794,126 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Error'
+
+  /users:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Usuários
+      summary: Listar todos os usuários
+      responses:
+        '200':
+          description: Lista de usuários
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/User'
+        '401':
+          description: Não autorizado
+    
+    post:
+      security:
+        - bearerAuth: []
+      tags:
+        - Usuários
+      summary: Criar novo usuário
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '201':
+          description: Usuário criado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autorizado
+
+  /users/{id}:
+    get:
+      security:
+        - bearerAuth: []
+      tags:
+        - Usuários
+      summary: Buscar usuário por ID
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Usuário encontrado
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
+
+    put:
+      security:
+        - bearerAuth: []
+      tags:
+        - Usuários
+      summary: Atualizar usuário
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/User'
+      responses:
+        '200':
+          description: Usuário atualizado com sucesso
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '400':
+          description: Dados inválidos
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
+
+    delete:
+      security:
+        - bearerAuth: []
+      tags:
+        - Usuários
+      summary: Excluir usuário
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '204':
+          description: Usuário excluído com sucesso
+        '401':
+          description: Não autorizado
+        '404':
+          description: Usuário não encontrado
+
+security:
+  - bearerAuth: []      # Aplica autenticação global para todos os endpoints
