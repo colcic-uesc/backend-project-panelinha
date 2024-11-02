@@ -9,9 +9,11 @@ Este projeto é uma API RESTful para gerenciamento de professores, estudantes, p
 - CRUD de Projetos
 - CRUD de Habilidades
 - Relacionamento de habilidades a estudantes
-- Autenticação JWT para estudantes
+- Autenticação JWT para usuários
 - Sistema de logs de requisições
 - Headers personalizados
+- Documentação da API com Swagger
+- Autenticação JWT global para todas as rotas
 
 ## Requisitos
 
@@ -63,8 +65,12 @@ Este projeto é uma API RESTful para gerenciamento de professores, estudantes, p
 A API utiliza autenticação JWT para proteger os endpoints. Para acessar as rotas protegidas:
 
 1. Faça login através do endpoint `/auth/login` com o método POST, utilizando curl ou postman, com os seguintes campos:
-   - registration (matrícula do estudante)
-   - email (email do estudante)
+   - username (nome de usuário para login)
+   - password (senha do usuário)
+
+   Usuário padrão:
+   - username: admin
+   - password: admin
 
 2. O token JWT retornado deve ser incluído no header `Authorization` das requisições:
    ```
