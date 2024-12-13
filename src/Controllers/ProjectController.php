@@ -2,6 +2,8 @@
 
 namespace Dougl\Projetoweb\Controllers;
 
+include 'cors.php';
+
 use Psr\Http\Message\ResponseInterface as Response;
 use Psr\Http\Message\ServerRequestInterface as Request;
 use Dougl\Projetoweb\Services\ProjectService;
