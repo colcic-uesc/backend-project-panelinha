@@ -1,0 +1,22 @@
+# Ignorar o diretório vendor
+/vendor/
+
+# Ignorar o arquivo de lock do Composer
+composer.lock
+
+# Ignorar arquivos JSON
+*.json
+
+# Ignorar arquivos de configuração do IDE (opcional)
+.idea/
+*.iml
+
+# Ignorar arquivos de log
+*.log
+
+# Ignorar arquivos temporários
+*.tmp
+*.temp
+
+# Ignorar arquivos de cache
+*.cache

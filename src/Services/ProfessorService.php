@@ -2,6 +2,8 @@
 
 namespace Dougl\Projetoweb\Services;
 
+include 'cors.php';
+
 use Dougl\Projetoweb\Models\Professor;
 use Illuminate\Database\Capsule\Manager as DB;
 
